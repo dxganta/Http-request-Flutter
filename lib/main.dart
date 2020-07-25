@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:httpdemo/constants.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,20 +25,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final String url = 'http://www.demourl.com';
-  TextEditingController macIdHolder = TextEditingController();
+  final String url = 'https://jsonplaceholder.typicode.com/posts';
 
-  String room;
-  String macIdFromInput;
+  String output;
 
-  Future<String> getDataFromServer(String macId) async {
+  Future<String> makePOSTRequest() async {
     // make a post request to the api and store the response
-    http.Response response = await http.post(url, body: {'mac_id': macId});
-    if (response.statusCode == 200) {
+    String input = '{"title": "Hello", "body": "body text", "userId": 1}';
+    http.Response response = await http.post(
+      url,
+      headers: {"Content-type": "application/json"},
+      body: input,
+    );
+    if (response.statusCode == 201) {
       var data = response.body;
-      dynamic decodedData = jsonDecode(data);
-      // replace query_key with the key of the json output by the api
-      return decodedData['query_key'];
+//      dynamic decodedData = jsonDecode(data);
+      return data;
     } else {
       print(
           'Could not fetch data from api | Error Code: ${response.statusCode}');
@@ -61,27 +60,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            TextField(
-              controller: macIdHolder,
-              textAlign: TextAlign.center,
-              decoration: kTextFieldDecoration,
-              onChanged: (value) {
-                // we take the input in the textfield and store it in a variable macIdFromInput
-                macIdFromInput = value;
-              },
-            ),
             RaisedButton(
-              onPressed: () {
-                setState(() async {
-                  // we make request to the api using the macIdFromInput and store the output to the variable room
-                  room = await getDataFromServer(macIdFromInput);
-                  macIdHolder
-                      .clear(); // clear the textfield after clicking on button
-                });
+              onPressed: () async {
+                output = await makePOSTRequest();
+                setState(() {});
               },
               elevation: 7.0,
               child: Text(
-                'Get Room',
+                'Make POST Request',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
@@ -95,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Center(
                 child: Text(
                   // if the room variable is null return waiting... else return the value of room
-                  (room == null) ? 'Waiting...' : room,
+                  (output == null) ? 'Waiting...' : output,
                   style: TextStyle(
                     fontSize: 27.0,
                   ),
